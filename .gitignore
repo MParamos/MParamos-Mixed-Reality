@@ -24,3 +24,7 @@ yarn-error.log*
 
 # Ignore local test uploads if you ever save them in the working directory
 /test_uploads/
+
+
+#Getting rid of apache specific config files
+.htaccess
