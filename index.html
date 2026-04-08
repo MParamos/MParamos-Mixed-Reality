@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miguel Páramos - Mixed Reality</title>
+
+<link rel="stylesheet" href="css/styles.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+
+<div id="landscape-warning">
+    <h2 data-i18n="warn_title">📱 Rotate your phone!</h2>
+    <p data-i18n="warn_desc1">This Mixed Reality experience is designed to be used in Portrait mode with the device perpendicular to the ground.</p>
+    <p class="secret-text" data-i18n="warn_desc2">(Secret tip: it works even better on desktop 😉)</p>
+</div>
+
+<div id="camera-container">
+    <video id="videoElement" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
+    <canvas id="three_canvas"></canvas>
+    <span id="camera-placeholder" class="camera-placeholder" data-i18n="loading_models">[ Loading AI Models... ]</span>
+</div>
+
+<div class="ui-container">
+
+    <div class="sliders-bar" id="faceoverSliders">
+        <div class="sliders-title" data-i18n="title_faceover">🎭 Faceover Options</div>
+
+        <div class="slider-group">
+            <label for="meshScaleX"><span data-i18n="size_x">Size X</span> (<span id="valMeshScaleX" class="slider-val">1.00</span>)</label>
+            <input type="range" id="meshScaleX" min="0.5" max="2.5" step="0.05" value="1.00">
+        </div>
+        <div class="slider-group">
+            <label for="meshScaleY"><span data-i18n="size_y">Size Y</span> (<span id="valMeshScaleY" class="slider-val">1.00</span>)</label>
+            <input type="range" id="meshScaleY" min="0.5" max="2.5" step="0.05" value="1.00">
+        </div>
+        <div class="slider-group">
+            <label for="meshOffsetX"><span data-i18n="offset_x">Offset X</span> (<span id="valMeshOffsetX" class="slider-val">0.00</span>)</label>
+            <input type="range" id="meshOffsetX" min="-1.5" max="1.5" step="0.05" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label for="meshOffsetY"><span data-i18n="offset_y">Offset Y</span> (<span id="valMeshOffsetY" class="slider-val">0.00</span>)</label>
+            <input type="range" id="meshOffsetY" min="-1.5" max="1.5" step="0.05" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label for="uvScaleX"><span data-i18n="tex_x">Texture X</span> (<span id="valUvScaleX" class="slider-val">1.35</span>)</label>
+            <input type="range" id="uvScaleX" min="0.5" max="2.5" step="0.05" value="1.35">
+        </div>
+        <div class="slider-group">
+            <label for="uvScaleY"><span data-i18n="tex_y">Texture Y</span> (<span id="valUvScaleY" class="slider-val">1.35</span>)</label>
+            <input type="range" id="uvScaleY" min="0.5" max="2.5" step="0.05" value="1.35">
+        </div>
+        <div class="slider-group">
+            <label for="uvOffsetX"><span data-i18n="offset_tx">Offset TX</span> (<span id="valOffsetX" class="slider-val">0.00</span>)</label>
+            <input type="range" id="uvOffsetX" min="-0.5" max="0.5" step="0.01" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label for="uvOffsetY"><span data-i18n="offset_ty">Offset TY</span> (<span id="valOffsetY" class="slider-val">-0.01</span>)</label>
+            <input type="range" id="uvOffsetY" min="-0.5" max="0.5" step="0.01" value="-0.01">
+        </div>
+        <div class="slider-group">
+            <label for="meshTilt"><span data-i18n="rotation">Rotation</span> (<span id="valTilt" class="slider-val">0°</span>)</label>
+            <input type="range" id="meshTilt" min="-180" max="180" step="1" value="0">
+        </div>
+
+        <div class="slider-group">
+            <label for="mouthOffsetX"><span data-i18n="mouth_x">Mouth X</span> (<span id="valMouthOffsetX" class="slider-val">0</span>)</label>
+            <input type="range" id="mouthOffsetX" min="-50" max="50" step="1" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="mouthOffsetY"><span data-i18n="mouth_y">Mouth Y</span> (<span id="valMouthOffsetY" class="slider-val">0</span>)</label>
+            <input type="range" id="mouthOffsetY" min="-50" max="50" step="1" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="mouthScale"><span data-i18n="scale_mouth">Mouth Scale</span> (<span id="valMouthScale" class="slider-val">100</span>%)</label>
+            <input type="range" id="mouthScale" min="10" max="300" step="1" value="100">
+        </div>
+        <div class="slider-group">
+            <label for="eyesOffsetX"><span data-i18n="eyes_x">Eyes X</span> (<span id="valEyesOffsetX" class="slider-val">0</span>)</label>
+            <input type="range" id="eyesOffsetX" min="-50" max="50" step="1" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="eyesOffsetY"><span data-i18n="eyes_y">Eyes Y</span> (<span id="valEyesOffsetY" class="slider-val">0</span>)</label>
+            <input type="range" id="eyesOffsetY" min="-50" max="50" step="1" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="eyesScale"><span data-i18n="scale_eyes">Eyes Scale</span> (<span id="valEyesScale" class="slider-val">100</span>%)</label>
+            <input type="range" id="eyesScale" min="10" max="300" step="1" value="100">
+        </div>
+
+        <div class="slider-group toggle-group pl-10">
+            <input type="checkbox" id="chkFillMouth">
+            <label for="chkFillMouth" data-i18n="close_mouth">Fill Mouth</label>
+        </div>
+        <div class="slider-group toggle-group pl-10">
+            <input type="checkbox" id="chkFillEyes">
+            <label for="chkFillEyes" data-i18n="close_eyes">Fill Eyes</label>
+        </div>
+
+        <div class="slider-group pb-5">
+            <button id="btnResetSliders" class="btn-reset" data-i18n="btn_reset">🔄 Reset</button>
+        </div>
+    </div>
+
+    <div class="sliders-bar" id="handObjectSliders">
+        <div class="sliders-title" data-i18n="title_hand">🗡️ Hand Object Options</div>
+        <div class="slider-group">
+            <label for="sldHandOffsetX"><span data-i18n="offset_x">Offset X</span> (<span id="valHandOffsetX" class="slider-val">0.00</span>)</label>
+            <input type="range" id="sldHandOffsetX" class="slider-short" min="-3.0" max="3.0" step="0.05" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label for="sldHandOffsetY"><span data-i18n="offset_y">Offset Y</span> (<span id="valHandOffsetY" class="slider-val">0.00</span>)</label>
+            <input type="range" id="sldHandOffsetY" class="slider-short" min="-3.0" max="3.0" step="0.05" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label for="sldHandScale"><span data-i18n="size">Scale</span> (<span id="valHandScale" class="slider-val">100</span>%)</label>
+            <input type="range" id="sldHandScale" class="slider-med" min="10" max="300" step="1" value="100">
+        </div>
+
+        <div class="slider-group">
+            <button id="btnResetHandSliders" class="btn-reset" data-i18n="btn_reset">🔄 Reset</button>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="toggle-group">
+            <input type="checkbox" id="chkFaceDetect">
+            <label for="chkFaceDetect" data-i18n="det_face">Face Detection</label>
+        </div>
+        <div class="toggle-group">
+            <input type="checkbox" id="chkFaceover">
+            <label for="chkFaceover" data-i18n="faceover">Faceover 🎭</label>
+        </div>
+        <div class="toggle-group">
+            <input type="checkbox" id="chkHandDetect" checked>
+            <label for="chkHandDetect" data-i18n="det_hands">Hand Detection</label>
+        </div>
+        <div class="toggle-group">
+            <input type="checkbox" id="chkFingerCount" checked>
+            <label for="chkFingerCount" data-i18n="count_fingers">Finger Counter</label>
+        </div>
+
+        <div class="button-group">
+            <button id="btnDownloadTemplate" data-i18n="btn_template">📥 Download faceover template</button>
+            <button id="btnCustomFaceover" data-i18n="btn_custom_face">🖼️ Custom faceover</button>
+            <button id="btnCustomObject" data-i18n="btn_custom_hand">🗡️ Custom hand object</button>
+            <a href="https://github.com/MParamos/MParamos-Mixed-Reality" target="_blank"><button id="btnDownloadCode" data-i18n="btn_code">📥 Download source code</button></a>
+
+            <input type="file" id="glbUploader" class="hidden-input" accept=".glb,.gltf,model/gltf-binary,model/gltf+json">
+            <input type="file" id="faceoverUploader" class="hidden-input" accept=".png">
+        </div>
+    </div>
+
+    <div class="credits-bar">
+        <img src="https://www.mparamos.com/img/mparamos%20logo%20vectorial.svg" alt="Logo Miguel Páramos" class="credits-logo">
+
+        <div class="title-and-flags">
+            <div class="credits-name" data-i18n="credits_title">Miguel Páramos - Mixed Reality</div>
+
+            <div class="lang-flags" id="langSelector">
+                <button class="flag-btn flag-es" data-lang="es" title="Español"></button>
+                <button class="flag-btn flag-en" data-lang="en" title="English / USA">
+                    <div class="flag-en-separator"></div>
+                </button>
+                <button class="flag-btn flag-fr" data-lang="fr" title="Français"></button>
+            </div>
+        </div>
+
+        <div class="credits-license">
+            © <span id="currentYear"></span> Miguel Páramos. <span data-i18n="credits_license1">Distributed under the</span> <a href="https://mit-license.org/" target="_blank">MIT</a> license. <span data-i18n="credits_license2">Attribution linking to</span> <a href="https://mparamos.com" target="_blank">mparamos.com</a> is appreciated.<br>
+            <span data-i18n="credits_license3">Powered by</span> <a href="https://developers.google.com/mediapipe" target="_blank">Google MediaPipe</a> (Apache 2.0) & <a href="https://threejs.org/" target="_blank">Three.js</a> (MIT).
+        </div>
+    </div>
+</div>
+
+<div id="toast">Default Warning</div>
+
+<script src="scripts/i18n.js"></script>
+<script src="scripts/ui.js"></script>
+<script src="scripts/hands.js"></script>
+<script src="scripts/face.js"></script>
+<script src="scripts/main.js"></script>
+
+</body>
+</html>

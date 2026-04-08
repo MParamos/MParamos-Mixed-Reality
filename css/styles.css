@@ -1,0 +1,424 @@
+/**
+ * @file styles.css
+ * @author: Miguel Páramos (mparamos.com)
+ * @description Defines the visual layout, typography, and interactive states for the Mixed Reality application.
+ * Utilizes flexbox for responsive alignment and CSS gradients for vector-based UI elements.
+ */
+
+/* Register custom typography fonts */
+@font-face {
+    font-family: 'FlorenceSans';
+    src: url('../font/sfflorencesans.ttf') format('truetype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'FlorenceSans';
+    src: url('../font/sfflorencesansblack.ttf') format('truetype');
+    font-weight: bold;
+}
+
+/* Reset default margins and enforce full viewport sizing */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    font-family: sans-serif;
+}
+
+/* Main viewport container locking the z-index hierarchy */
+#camera-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+}
+
+/* Hide raw video element; processing happens in memory and renders to canvas */
+#videoElement { display: none; }
+
+/* Ensure the 2D output canvas scales and mirrors horizontally to act as a physical mirror */
+#output_canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+}
+
+/* Overlay 3D canvas on top of the 2D canvas, mirroring it synchronously */
+#three_canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    pointer-events: none; /* Allow click-through to underlying elements if necessary */
+    z-index: 1;
+}
+
+/* UI toggle alignment and typography */
+.toggle-group {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-size: 14px;
+}
+.toggle-group input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 6px;
+    cursor: pointer;
+}
+.toggle-group label { cursor: pointer; }
+
+/* Grouping container for action buttons */
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Standard button styling with hover transitions */
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+button:hover { background: #0056b3; }
+
+/* Base styling for transient notification toast */
+#toast {
+    visibility: hidden;
+    min-width: 250px;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px;
+    position: fixed;
+    z-index: 20;
+    left: 50%;
+    bottom: 80px;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s, visibility 0.4s;
+    font-weight: bold;
+    color: #fff;
+    background-color: #333;
+}
+#toast.show { visibility: visible; opacity: 1; }
+
+/* Contextual severity classes for toast backgrounds */
+#toast.toast-error { background-color: #f44336; }
+#toast.toast-success { background-color: #2e7d32; }
+#toast.toast-info { background-color: #0277bd; }
+
+/* Anchored container for all control interfaces at the bottom of the screen */
+.ui-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Semi-transparent backdrop styling for slider panels */
+.sliders-bar {
+    width: 100%;
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(8px);
+    display: none;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 15px;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid #00ff88;
+}
+.sliders-bar.active { display: flex; }
+
+/* Section header within slider bars */
+.sliders-title {
+    width: 100%;
+    text-align: center;
+    color: #00ff88;
+    font-family: 'FlorenceSans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+/* Container locking label and input horizontally */
+.slider-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    font-family: 'FlorenceSans', sans-serif;
+    font-weight: bold;
+}
+
+/* Custom accent styling for HTML5 range inputs */
+.slider-group input[type="range"] {
+    width: 100px;
+    cursor: pointer;
+    accent-color: #00ff88;
+}
+
+/* Dynamic value readout typography */
+.slider-val {
+    color: #00ff88;
+    font-family: monospace;
+}
+
+/* Main action bar container */
+.bottom-bar {
+    width: 100%;
+    background: rgba(30, 30, 30, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 15px 10px;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Footer layout for credits and licensing */
+.credits-bar {
+    width: 100%;
+    background: rgba(10, 10, 10, 0.95);
+    padding: 8px 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-top: 1px solid #333;
+    gap: 15px;
+}
+
+/* Branding logo constraints */
+.credits-logo {
+    height: 42px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+/* Gradient typography for main brand title */
+.credits-name {
+    font-family: 'FlorenceSans', sans-serif;
+    font-weight: bold;
+    font-size: 1.2rem;
+    background: linear-gradient(to right, #fff, #cccccc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    padding-bottom: 4px;
+    white-space: nowrap;
+}
+
+/* Decorative underline for brand title */
+.credits-name::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #00ff88, #0066ff);
+}
+
+/* Licensing typography alignment */
+.credits-license {
+    font-size: 0.75rem;
+    color: #888;
+    font-family: sans-serif;
+    margin-left: auto;
+    text-align: right;
+    line-height: 1.4;
+}
+
+/* Link transitions and animations */
+.credits-license a {
+    color: #00ff88;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.credits-license a:hover {
+    text-decoration: none;
+    transform: scale(1.15);
+    font-weight: bold;
+    background: linear-gradient(90deg, #0066ff, #66b3ff, #0033cc, #0066ff);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: brilloAzul 4s linear infinite;
+}
+
+/* Continuous gradient animation keyframes */
+@keyframes brilloAzul {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+}
+
+/* Media query for mobile responsiveness */
+@media (max-width: 768px) {
+    .credits-bar {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px;
+        gap: 10px;
+    }
+    .credits-license {
+        margin-left: 0;
+        text-align: center;
+    }
+}
+
+/* Landscape orientation block overlay */
+#landscape-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    font-family: 'FlorenceSans', sans-serif;
+}
+#landscape-warning h2 { color: #00ff88; margin-bottom: 10px; }
+
+/* Utilities extracted from inline HTML */
+.camera-placeholder { position: absolute; font-size: 1.5em; z-index: -1; }
+.secret-text { margin-top: 15px; color: #aaa; font-size: 0.9em; }
+.btn-reset { background-color: #f44336; padding: 4px 8px; font-size: 11px; border-radius: 4px; border: none; color: white; cursor: pointer; height: 26px; font-weight: bold; }
+.slider-short { width: 80px !important; }
+.slider-med { width: 120px !important; }
+.pb-5 { padding-bottom: 5px; }
+.pl-10 { padding-left: 10px; }
+.hidden-input { display: none; }
+
+/* Wrapper to maintain title and flags in the same visual block */
+.title-and-flags {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+}
+.lang-flags {
+    display: flex;
+    gap: 8px;
+}
+
+/* Base geometry and interactivity for pure CSS flags */
+.flag-btn {
+    width: 32px;
+    height: 22px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    display: block;
+}
+.flag-btn:hover {
+    transform: scale(1.15);
+    border-color: #666;
+}
+.flag-btn.active {
+    border-color: #00ff88;
+    transform: scale(1.15);
+    box-shadow: 0 0 10px rgba(0,255,136,0.7);
+    z-index: 2;
+}
+
+/* Pure CSS Spanish Flag generation */
+.flag-es {
+    background: linear-gradient(to bottom, #c60b1e 25%, #ffc400 25%, #ffc400 75%, #c60b1e 75%);
+}
+
+/* Pure CSS French Flag generation */
+.flag-fr {
+    background: linear-gradient(to right, #002395 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ed2939 66.6%);
+}
+
+/* Base setup for Hybrid EN/US Flag */
+.flag-en {
+    background: #fff;
+}
+
+/* Top-Left segment: US Flag approximation using repeating gradients */
+.flag-en::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background:
+        linear-gradient(to right, #3C3B6E 45%, transparent 45%) 0 0 / 100% 50% no-repeat,
+        repeating-linear-gradient(to bottom, #B22234 0, #B22234 11.11%, #fff 11.11%, #fff 22.22%);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* Bottom-Right segment: UK Flag approximation via overlapping angled gradients */
+.flag-en::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background:
+        linear-gradient(to bottom, transparent 40%, #C8102E 40%, #C8102E 60%, transparent 60%),
+        linear-gradient(to right, transparent 43%, #C8102E 43%, #C8102E 57%, transparent 57%),
+        linear-gradient(to bottom, transparent 33%, #fff 33%, #fff 67%, transparent 67%),
+        linear-gradient(to right, transparent 36%, #fff 36%, #fff 64%, transparent 64%),
+        linear-gradient(35deg, transparent 46%, #C8102E 46%, #C8102E 54%, transparent 54%),
+        linear-gradient(-35deg, transparent 46%, #C8102E 46%, #C8102E 54%, transparent 54%),
+        linear-gradient(35deg, transparent 40%, #fff 40%, #fff 60%, transparent 60%),
+        linear-gradient(-35deg, transparent 40%, #fff 40%, #fff 60%, transparent 60%),
+        #012169;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+/* Dark diagonal separator for the hybrid flag */
+.flag-en-separator {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top left, transparent 47%, #222 47%, #222 53%, transparent 53%);
+    z-index: 10;
+    pointer-events: none;
+}
