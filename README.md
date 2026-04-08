@@ -2,7 +2,8 @@
 
 A client-side, browser-based Mixed Reality application built with Vanilla JavaScript, Three.js, and Google MediaPipe. This simulator allows real-time rendering of 3D objects mapped to hand gestures and custom 2D/3D facial overlays (Faceovers) with local morphing capabilities.
 
-Developed by **[Miguel Páramos](https://mparamos.com)**.
+Developed by **[Miguel Páramos](https://www.mparamos.com)**.
+A live demo is available at : https://www.mparamos.com/mr
 
 ## ✨ Features
 
